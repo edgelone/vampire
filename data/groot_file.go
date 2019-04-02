@@ -1,11 +1,14 @@
 package data
 
-import "log"
+import (
+	"database/sql"
+	"log"
+)
 
 type GrootFile struct {
 	Id       int
-	FileKey  string
-	SwiftUrl string
+	FileKey  sql.NullString
+	SwiftUrl sql.NullString
 }
 
 func GrootFiles() (grootFiles []GrootFile, err error) {
@@ -32,7 +35,7 @@ func GrootFilesWithoutSwift() (grootFiles []GrootFile) {
 	var result []GrootFile
 
 	for _, v := range files {
-		if v.SwiftUrl == "" {
+		if v.SwiftUrl.String == "" {
 			result = append(result, v)
 		}
 	}

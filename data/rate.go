@@ -1,11 +1,14 @@
 package data
 
-import "log"
+import (
+	"database/sql"
+	"log"
+)
 
 type Rate struct {
 	Id        int
-	FileKeys  string
-	SwiftUrls string
+	FileKeys  sql.NullString
+	SwiftUrls sql.NullString
 }
 
 func Rates() (rates []Rate, err error) {
@@ -31,10 +34,10 @@ func RatesWithoutSwift() (rates []Rate) {
 	var result []Rate
 
 	for _, v := range rows {
-		if v.SwiftUrls != "" {
+		if v.SwiftUrls.String != "" {
 			continue
 		}
-		if v.FileKeys == "" || len(v.FileKeys) < 3 {
+		if v.FileKeys.String == "" || len(v.FileKeys.String) < 3 {
 			continue
 		}
 		result = append(result, v)

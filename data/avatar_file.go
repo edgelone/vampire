@@ -1,12 +1,15 @@
 package data
 
-import "log"
+import (
+	"database/sql"
+	"log"
+)
 
 type AvatarFile struct {
 	Id         int
-	FileKey    string
-	FileSource string
-	SwiftUrl   string
+	FileKey    sql.NullString
+	FileSource sql.NullString
+	SwiftUrl   sql.NullString
 }
 
 func AvatarFiles() (avatarFiles []AvatarFile, err error) {
@@ -35,7 +38,7 @@ func AvatarFilesWithoutSwift() (avatarFiles []AvatarFile) {
 	var result []AvatarFile
 
 	for _, v := range files {
-		if v.SwiftUrl == "" {
+		if v.SwiftUrl.String == "" {
 			result = append(result, v)
 		}
 	}

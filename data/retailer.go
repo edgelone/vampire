@@ -1,11 +1,14 @@
 package data
 
-import "log"
+import (
+	"database/sql"
+	"log"
+)
 
 type Retailer struct {
 	Id             int
-	AvatarKey      string
-	AvatarSwiftUrl string
+	AvatarKey      sql.NullString
+	AvatarSwiftUrl sql.NullString
 }
 
 func Retailers() (retailers []Retailer, err error) {
@@ -32,7 +35,7 @@ func RetailersWithoutSwift() (retailers []Retailer) {
 	var result []Retailer
 
 	for _, v := range rows {
-		if v.AvatarSwiftUrl == "" {
+		if v.AvatarSwiftUrl.String == "" {
 			result = append(result, v)
 		}
 	}

@@ -1,18 +1,20 @@
 package data
 
-import "log"
+import (
+	"database/sql"
+	"log"
+)
 
 type AntmanFile struct {
 	Id       int
-	AppId    string
-	FileKey  string
-	Bucket   string
-	Size     int
-	SwiftUrl string
+	FileKey  sql.NullString
+	Bucket   sql.NullString
+	Size     sql.NullInt64
+	SwiftUrl sql.NullString
 }
 
 func AntmanFiles() (antmanFiles []AntmanFile, err error) {
-	rows, err := Db.Query("select id,app_id,file_key,bucket,size,swift_url from antman_files")
+	rows, err := Db.Query("select id,file_key,bucket,size,swift_url from antman_files")
 
 	if err != nil {
 		log.Fatal(err)
@@ -20,7 +22,7 @@ func AntmanFiles() (antmanFiles []AntmanFile, err error) {
 	for rows.Next() {
 		antmanFile := AntmanFile{}
 
-		if err = rows.Scan(&antmanFile.Id, &antmanFile.AppId, &antmanFile.FileKey, &antmanFile.Bucket, &antmanFile.Size,
+		if err = rows.Scan(&antmanFile.Id, &antmanFile.FileKey, &antmanFile.Bucket, &antmanFile.Size,
 			&antmanFile.SwiftUrl); err != nil {
 			log.Fatal(err)
 		}
@@ -31,14 +33,14 @@ func AntmanFiles() (antmanFiles []AntmanFile, err error) {
 }
 
 func AntmanFilesByFileKey(fileKey string) (antmanFiles []AntmanFile, err error) {
-	rows, err := Db.Query("select id,app_id,file_key,bucket,size,swift_url from antman_files where file_key = '" + fileKey+"'")
+	rows, err := Db.Query("select id,file_key,bucket,size,swift_url from antman_files where file_key = '" + fileKey+"'")
 	if err != nil {
 		log.Fatal(err)
 	}
 	for rows.Next() {
 		antmanFile := AntmanFile{}
 
-		if err = rows.Scan(&antmanFile.Id, &antmanFile.AppId, &antmanFile.FileKey, &antmanFile.Bucket, &antmanFile.Size,
+		if err = rows.Scan(&antmanFile.Id, &antmanFile.FileKey, &antmanFile.Bucket, &antmanFile.Size,
 			&antmanFile.SwiftUrl); err != nil {
 			log.Fatal(err)
 		}
@@ -54,7 +56,7 @@ func AntmanFileByFileKey(fileKey string) (antmanFile AntmanFile) {
 		return
 	}
 	for _, a := range antmanFiles {
-		if a.Size > 10 {
+		if a.Size.Int64 > 10 {
 			return a
 		}
 	}
