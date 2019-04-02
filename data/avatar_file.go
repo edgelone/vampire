@@ -26,3 +26,19 @@ func AvatarFiles() (avatarFiles []AvatarFile, err error) {
 	rows.Close()
 	return
 }
+
+
+
+func AvatarFilesWithoutSwift() (avatarFiles []AvatarFile) {
+	files, _ := AvatarFiles()
+
+	result := []AvatarFile{}
+
+	for _, v := range files {
+		if v.SwiftUrl == "" {
+			result = append(result, v)
+		}
+	}
+	return result
+
+}

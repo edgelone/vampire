@@ -1,38 +1,50 @@
 package main
 
 import (
-	"os"
-	"log"
 	"vampire/data"
+	"vampire/util"
 )
 
-func analysisAvatar()  {
-	avatarFiles, _ := data.AvatarFiles()
-
+func analysisAvatarFiles() {
+	avatarFiles := data.AvatarFilesWithoutSwift()
 	str := ""
 
 	for _, avatarFile := range avatarFiles {
-
 		if avatarFile.FileKey == "" {
 			continue
 		}
+		str = generalStr(str, avatarFile.FileKey, "ostenement")
+	}
+	util.WriteFile(str, "avatar_files")
+}
 
-		str = str + "\"" + avatarFile.FileKey + "\""
+func analysisContracts(){
+	contracts := data.ContractsWithoutSwift()
+	str := ""
 
-		antmanFile := data.AntmanFileByFileKey(avatarFile.FileKey)
-		if antmanFile.FileKey == "" {
-			str = str + ",\"\",\"ostenement\"" + "\n"
-		} else {
-			str = str + ",\"" + antmanFile.Bucket + "\",\"ostenement\"" + "\n"
-
+	for _, contract := range contracts {
+		if contract.FileKey == "" {
+			continue
 		}
+		str = generalStr(str, contract.FileKey, "osfileprivate")
+	}
+	util.WriteFile(str, "contracts")
+}
 
+func analysisRetailers(){
+
+}
+
+
+
+
+func generalStr(str string, fileKey string, account string) string {
+	str = str + "\"" + fileKey + "\""
+	antmanFile := data.AntmanFileByFileKey(fileKey)
+	if antmanFile.FileKey == "" {
+		str = str + ",\"\",\"" + account + "\"" + "\n"
+	} else {
+		str = str + ",\"" + antmanFile.Bucket + "\",\"" + account + "\"" + "\n"
 	}
-	file, err := os.Create("./avatar_files.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	//写入字符串
-	file.WriteString(str);
-	file.Close();
+	return str
 }
