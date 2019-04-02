@@ -8,49 +8,49 @@ import (
 	"vampire/util"
 )
 
-func analysisAvatarFiles(wg sync.WaitGroup) {
+func analysisAvatarFiles(ch chan<- int) {
+	var wg sync.WaitGroup
 	log.Println("start analysis avatar file")
 	avatarFiles := data.AvatarFilesWithoutSwift()
-	str := ""
-
 	var round = len(avatarFiles) / 5000
 	strChan := make(chan string, 10)
-	wg.Add(1)
-
+	go complexChan(strChan, ch)
 	for i := 0; i < round; i++ {
 		end := (i + 1) * 5000
 		if len(avatarFiles) <= end {
 			end = len(avatarFiles)
 		}
-
 		part := avatarFiles[i*5000 : end]
-		go filePatten(part, str, strChan)
+		wg.Add(1)
+		go filePatten(part, strChan, &wg)
 		log.Println("running count", i)
 	}
-	complexChan(strChan, str, wg)
+	wg.Wait()
+	close(strChan)
 
 }
 
-func complexChan(strChan <-chan string, str string, group sync.WaitGroup) {
+func complexChan(strChan <-chan string, ch chan<- int) {
 	log.Println("go file patten running: ", len(strChan))
-	defer group.Done()
-
+	str := ""
 	for {
 		partStr, ok := <-strChan
 		if !ok {
 			util.WriteFile(str, "avatar_files")
-			return
+			ch <- 1
 		}
 		str = str + partStr
 	}
 }
 
-func filePatten(avatarFiles []data.AvatarFile, str string, strChan chan<- string) {
+func filePatten(avatarFiles []data.AvatarFile, strChan chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	var str = ""
 	for _, avatarFile := range avatarFiles {
 		if avatarFile.FileKey.String == "" {
 			continue
 		}
-		str = generalStr(str, avatarFile.FileKey.String, "ostenement")
+		str = str + generalStr(avatarFile.FileKey.String, "ostenement")
 	}
 	strChan <- str
 }
@@ -63,7 +63,7 @@ func analysisContracts() {
 		if contract.FileKey == "" {
 			continue
 		}
-		str = generalStr(str, contract.FileKey, "osfileprivate")
+		str = generalStr(contract.FileKey, "osfileprivate")
 	}
 	util.WriteFile(str, "contracts")
 }
@@ -75,7 +75,7 @@ func analysisRetailers() {
 		if v.AvatarKey.String == "" {
 			continue
 		}
-		str = generalStr(str, v.AvatarKey.String, "osportrait")
+		str = generalStr(v.AvatarKey.String, "osportrait")
 	}
 	util.WriteFile(str, "retailers")
 }
@@ -90,7 +90,7 @@ func analysisRates() {
 		fileKeys := strings.Split(v.FileKeys.String, ",")
 
 		for _, fileKey := range fileKeys {
-			str = generalStr(str, fileKey, "oscomment")
+			str = generalStr(fileKey, "oscomment")
 		}
 	}
 	util.WriteFile(str, "retailers")
@@ -104,13 +104,13 @@ func analysisGroot() {
 		if v.FileKey.String == "" {
 			continue
 		}
-		str = generalStr(str, v.FileKey.String, "ostenement")
+		str = generalStr(v.FileKey.String, "ostenement")
 	}
 	util.WriteFile(str, "groot_files")
 }
 
-func generalStr(str string, fileKey string, account string) string {
-	str = str + "\"" + fileKey + "\""
+func generalStr(fileKey string, account string) string {
+	str := "\"" + fileKey + "\""
 	antmanFile := data.AntmanFileByFileKey(fileKey)
 	if antmanFile.FileKey.String == "" {
 		str = str + ",\"\",\"" + account + "\"" + "\n"
