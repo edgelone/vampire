@@ -1,5 +1,8 @@
 package main
 
 func main() {
-	 analysisAvatarFiles()
+	go analysisAvatarFiles()
+	go analysisGroot()
+	go analysisRates()
+
 }

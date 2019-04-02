@@ -22,13 +22,14 @@ func Contracts() (contracts []Contract, err error) {
 		}
 		contracts = append(contracts, contract)
 	}
+	rows.Close()
 	return
 }
 
 func ContractsWithoutSwift() (contracts []Contract) {
 	rows, _ := Contracts()
 
-	result := []Contract{}
+	var result []Contract
 
 	for _, v := range rows {
 		if v.SwiftUrl == "" {

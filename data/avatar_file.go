@@ -32,7 +32,7 @@ func AvatarFiles() (avatarFiles []AvatarFile, err error) {
 func AvatarFilesWithoutSwift() (avatarFiles []AvatarFile) {
 	files, _ := AvatarFiles()
 
-	result := []AvatarFile{}
+	var result []AvatarFile
 
 	for _, v := range files {
 		if v.SwiftUrl == "" {
