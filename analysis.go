@@ -3,39 +3,46 @@ package main
 import (
 	"log"
 	"strings"
+	"sync"
 	"vampire/data"
 	"vampire/util"
 )
 
-func analysisAvatarFiles() {
+func analysisAvatarFiles(wg sync.WaitGroup) {
 	log.Println("start analysis avatar file")
 	avatarFiles := data.AvatarFilesWithoutSwift()
 	str := ""
 
-	var round = len(avatarFiles) / 10000
+	var round = len(avatarFiles) / 5000
 	strChan := make(chan string, 10)
+	wg.Add(1)
 
 	for i := 0; i < round; i++ {
-		end := (i + 1) * 10000
+		end := (i + 1) * 5000
 		if len(avatarFiles) <= end {
 			end = len(avatarFiles)
 		}
 
-		part := avatarFiles[i*10000 : end]
+		part := avatarFiles[i*5000 : end]
 		go filePatten(part, str, strChan)
-		if i == 10 {
-			go complexChan(strChan, str)
-
-		}
+		log.Println("running count", i)
 	}
+	complexChan(strChan, str, wg)
+
 }
 
-func complexChan(strChan <-chan string, str string) {
-	for partStr := range strChan {
+func complexChan(strChan <-chan string, str string, group sync.WaitGroup) {
+	log.Println("go file patten running: ", len(strChan))
+	defer group.Done()
+
+	for {
+		partStr, ok := <-strChan
+		if !ok {
+			util.WriteFile(str, "avatar_files")
+			return
+		}
 		str = str + partStr
 	}
-
-	util.WriteFile(str, "avatar_files")
 }
 
 func filePatten(avatarFiles []data.AvatarFile, str string, strChan chan<- string) {
@@ -46,8 +53,6 @@ func filePatten(avatarFiles []data.AvatarFile, str string, strChan chan<- string
 		str = generalStr(str, avatarFile.FileKey.String, "ostenement")
 	}
 	strChan <- str
-	log.Println("go file patten running: ", len(strChan))
-
 }
 
 func analysisContracts() {

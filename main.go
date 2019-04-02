@@ -1,7 +1,15 @@
 package main
 
-func main() {
-	 analysisAvatarFiles()
+import (
+	"sync"
+)
 
+func main() {
+
+	var wg sync.WaitGroup
+
+	analysisAvatarFiles(wg)
+
+	wg.Wait()
 
 }
